@@ -1,0 +1,123 @@
+﻿
+@{
+    ViewData["Title"] = "Board";
+}
+
+<h2>Board</h2>
+
+<canvas id="board">
+    
+</canvas>
+<style>
+    #board {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        background: white;
+    }
+</style>
+<script>
+    var board;
+    var ctx;
+    var camera = {
+        zoom: 1,
+        pos: {
+            x: 0,
+            y: 0
+        }
+    }
+
+    var mouseDown = false;
+    var mousePrev = {
+        x: 0,
+        y: 0
+    };
+
+    function initialize() {
+        board = document.getElementById('board');
+        ctx = board.getContext("2d");
+        
+        board.addEventListener('mousedown',
+            function(e) {
+                mouseDown = true;
+                mousePrev = {
+                    x: e.clientX,
+                    y: e.clientY
+                }
+            });
+
+        board.addEventListener('mouseup',
+            function(e) {
+                mouseDown = false;
+            });
+
+        board.addEventListener('mousemove',
+            function (e) {
+                var mouseCurrent = {
+                    x: e.clientX,
+                    y: e.clientY
+                };
+
+                if (mouseDown) {
+                    cammove({
+                        x: mouseCurrent.x - mousePrev.x,
+                        y: mouseCurrent.y - mousePrev.y
+                    });
+                }
+
+                mousePrev = mouseCurrent;
+            });
+
+        ctx.canvas.width = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;
+
+        setInterval(draw, 1 / 15);
+    }
+
+    function resize() {
+        ctx.canvas.width = window.innerWidth;
+        ctx.canvas.height = window.innerHeight;
+
+        draw();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, board.width, board.height);
+        ctx.moveTo(0, 0);
+        ctx.setTransform(camera.zoom, 0, 0, camera.zoom, camera.pos.x, camera.pos.y);
+        ctx.fillRect(100, 100, 200, 200);
+    }
+
+    function camzoom(amount) {
+        camera.zoom = clamp(camera.zoom += amount, 0.25, 2);
+    }
+
+    function cammove(amount) {
+        camera.pos.x += amount.x;
+        camera.pos.y += amount.y;
+    }
+
+    window.addEventListener('load',
+        function() {
+            initialize();
+        });
+
+    window.addEventListener('resize',
+        function() {
+            resize();
+        });
+
+    window.addEventListener('wheel',
+        function(e) {
+            camzoom(-e.deltaY / 1000);
+        });
+
+    function clamp(source, min, max) {
+        if (source < min) return min;
+        if (source > max) return max;
+        return source;
+    }
+    
+</script>
